@@ -1,3 +1,6 @@
+# About
+This project builds upon the work presented by _Merlin Alex_ & _Maheen Hasib_ in "Prediction Of Heart Failure Patient Survival Using Machine Learning"<https://ojs.aaai.org/index.php/AAAI-SS/article/view/36050>, using their methodology as a primary basis for our analysis.
+
 # Heart-Failure-Survival-Prediction-with-Machine-Learning
 📊 A Beat Ahead: ML in Cardiology. Using the power of Machine Learning to illuminate the shadows of Heart Failure. Turning data into a lifeline by predicting mortality with precision and care.
 
