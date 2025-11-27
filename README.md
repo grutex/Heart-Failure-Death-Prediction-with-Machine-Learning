@@ -16,11 +16,11 @@ This project builds upon the work presented by **_Merlin Alex_** & **_Maheen Has
 <br/>
 
 **Colaborators & Github:**  
-  Roberto Almeida Burlamaque Catunda ; @grutex  
-  Gabriel Reis ;  
-  Joao Pedro ;  
-  Marina da Fonseca Frias de Siqueira Campos ; @MarinaFFSC  
-  David Ian Pereira Paula ; @davidian19  
+  Roberto Almeida Burlamaque Catunda -- @grutex  
+  Gabriel Reis -- @13grmp  
+  Joao Pedro -- @joaopedrofds 
+  Marina da Fonseca Frias de Siqueira Campos -- @MarinaFFSC  
+  David Ian Pereira Paula -- @davidian19  
 
 <br/>
 
