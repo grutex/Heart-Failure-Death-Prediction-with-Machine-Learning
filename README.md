@@ -87,8 +87,7 @@ You should see 10 containers running: fastapi, postgres, minio, mlflow, jupyterl
 | **MinIO Console** | http://localhost:9001 | admin / admin123 |
 | **Jupyter Lab** | http://localhost:8890 | Token: admin123 |
 | **MLflow** | http://localhost:5000 | - |
-| **ThingsBoard** | http://localhost:8080 | sysadmin@thingsboard.org / sysadmin | tenant@thingsboard.org | tenant |
-| **Trendz** | http://localhost:8888 | (same as ThingsBoard) |
+| **ThingsBoard** | http://localhost:8080 | sysadmin@thingsboard.org / sysadmin - tenant@thingsboard.org | tenant |
 
 ---
 
