@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+boto3
+pandas
+sqlalchemy
+psycopg2-binary
+python-multipart
+scikit-learn
+joblib
+imblearn
+IPython
+matplotlib
+seaborn
+mlflow
+datetime

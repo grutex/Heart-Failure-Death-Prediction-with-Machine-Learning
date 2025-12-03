@@ -1,0 +1,228 @@
+version: "3.8"
+
+services:
+  # === S3 local (equivalente ao S3 da AWS) ===
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: admin123
+    ports:
+      - "9000:9000"   # API S3
+      - "9001:9001"   # Console Web
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:9000/minio/health/live || exit 1" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - ml-net
+
+  # cria o bucket de artefatos do MLflow automaticamente
+  minio-create-bucket:
+    image: minio/mc
+    container_name: minio-create-bucket
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      sh -c "
+      mc alias set local http://minio:9000 admin admin123 &&
+      (mc ls local/dados-mlflow || mc mb local/dados-mlflow) &&
+      echo 'Bucket dados-mlflow pronto'
+      "
+    networks:
+      - ml-net
+
+  # === Postgres ===
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: mluser
+      POSTGRES_PASSWORD: mlpass
+      POSTGRES_DB: mldb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ml-net
+
+    # === MLflow Tracking Server (usando MinIO como S3) ===
+  mlflow:
+    image: python:3.11-slim
+    container_name: mlflow
+    working_dir: /mlflow
+    environment:
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: admin123
+      MLFLOW_SERVER_ALLOWED_HOSTS: "*"
+      MLFLOW_SERVER_CORS_ALLOWED_ORIGINS: "*"
+    volumes:
+      - ./mlflow:/mlflow
+      - mlflow_data:/mlflow_data
+    ports:
+      - "5000:5000"
+    depends_on:
+      minio-create-bucket:
+        condition: service_completed_successfully
+    networks:
+      - ml-net
+    command:
+      - /bin/bash
+      - -c
+      - |
+        set -e
+        pip install mlflow==3.6.0 boto3 && \
+        mlflow server \
+          --backend-store-uri sqlite:////mlflow_data/mlflow.db \
+          --artifacts-destination s3://dados-mlflow \
+          --host 0.0.0.0 \
+          --port 5000
+  mlflow-serving:
+    image: python:3.11-slim
+    container_name: mlflow-serving
+    working_dir: /mlflow
+    environment:
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: admin123
+      MLFLOW_MODEL_URI: "models:/meu_modelo_trendz/Production"
+    command: >
+      sh -c "
+      pip install mlflow==3.6.0 boto3 &&
+      mlflow models serve
+        --model-uri ${MLFLOW_MODEL_URI}
+        --host 0.0.0.0
+        --port 5000
+      "
+    depends_on:
+      - minio
+      - mlflow
+    networks:
+      - ml-net
+    ports:
+      - "5001:5000"   # host 5001 -> container 5000
+
+
+  # === Jupyter (treino do modelo) ===
+  jupyterlab:
+    build: ./jupyterlab       
+    image: jupyter-mlflow
+    container_name: jupyterlab
+    environment:
+      JUPYTER_TOKEN: admin123
+      # MLflow / MinIO
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: admin123
+      # DB
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: mluser
+      DB_PASSWORD: mlpass
+      DB_NAME: mldb
+    volumes:
+      - ./notebooks:/home/jovyan/work
+    ports:
+      - "8890:8888"
+    depends_on:
+      - mlflow
+      - postgres
+      - minio
+    networks:
+      - ml-net
+
+  # === FastAPI (ingestão e API de predição) ===
+  fastapi:
+    build: ./fastapi
+    container_name: fastapi
+    environment:
+      # S3 (MinIO) pra salvar dados crus
+      S3_ENDPOINT_URL: http://minio:9000
+      S3_BUCKET: dados-analise
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: admin123
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: mluser
+      DB_PASSWORD: mlpass
+      DB_NAME: mldb
+    depends_on:
+      - minio
+      - postgres
+    ports:
+      - "8000:8000"
+    networks:
+      - ml-net
+
+  # === ThingsBoard (IoT / dashboard de telemetria) ===
+  thingsboard:
+    image: thingsboard/tb-postgres:4.0.1  # CE com Postgres embutido
+    container_name: thingsboard
+    restart: always
+    environment:
+      TB_QUEUE_TYPE: in-memory   # suficiente pra dev / PoC
+    ports:
+      - "8080:9090"              # HTTP (host 8080 -> container 9090)
+    volumes:
+      - thingsboard_data:/data
+      - thingsboard_logs:/var/log/thingsboard
+    networks:
+      - ml-net
+
+  # === Postgres só para o Trendz ===
+  trendz-postgres:
+    image: postgres:16
+    container_name: trendz-postgres
+    environment:
+      POSTGRES_DB: trendz
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - trendz_pg_data:/var/lib/postgresql/data
+    networks:
+      - ml-net
+
+  # === Trendz Analytics (visualização avançada, chama o modelo) ===
+  trendz:
+    image: thingsboard/trendz:1.14.0
+    container_name: trendz
+    depends_on:
+      - thingsboard
+      - trendz-postgres
+    environment:
+      TB_API_URL: http://thingsboard:9090
+      TB_API_PE_ENABLED: "false"
+      TRENDZ_LICENSE_SECRET: "INSIRA_SUA_LICENSE_KEY_AQUI"
+      # DB do Trendz
+      SPRING_DATASOURCE_URL: jdbc:postgresql://trendz-postgres:5432/trendz
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    ports:
+      - "8888:8888"   # igual ao desenho
+    volumes:
+      - trendz_data:/data
+      - trendz_logs:/var/log/trendz
+    networks:
+      - ml-net
+
+networks:
+  ml-net:
+
+volumes:
+  minio_data:
+  postgres_data:
+  mlflow_data:
+  thingsboard_data:
+  thingsboard_logs:
+  trendz_pg_data:
+  trendz_data:
+  trendz_logs:
