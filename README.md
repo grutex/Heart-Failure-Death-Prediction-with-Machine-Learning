@@ -34,20 +34,6 @@ ML in Cardiology: turning data into a lifeline by predicting a heart failure sur
 
 This guide provides step-by-step instructions to set up the environment, configure dependencies, and execute the code.
 
-### 1. Prerequisites
-Before you begin, ensure you have the following installed locally:
-* **OS:** Windows 10+, macOS 12+, or a Linux System
-* **Language:** Python 3.9+, !!! outras possiveis linguagens aqui !!!
-* **Tools:** Git, Docker, !!! o resto das Ferramentas necessarias !!!
-
-### 2. !!! A FAZER !!!  
-# 🫀 Heart Failure Prediction - ML Cesar
-
-Complete system for predicting heart failure mortality using Machine Learning, FastAPI, ThingsBoard, and Trendz analytics.
-
----
-
-## 🚀 Getting Started (Quick)
 
 ### 1. Prerequisites
 
@@ -78,7 +64,7 @@ You should see 10 containers running: fastapi, postgres, minio, mlflow, jupyterl
 
 ---
 
-## 🌐 Access Services
+## Access Services
 
 | Service | URL | Credentials |
 |---------|-----|-------------|
@@ -105,7 +91,7 @@ docker compose stop
 docker compose start
 ```
 
-### Ver Logs
+### Logs
 
 ```bash
 # FastAPI
