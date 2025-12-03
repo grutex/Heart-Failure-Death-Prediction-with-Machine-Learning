@@ -64,7 +64,7 @@ You should see 10 containers running: fastapi, postgres, minio, mlflow, jupyterl
 
 ---
 
-## Access Services
+### Access Services
 
 | Service | URL | Credentials |
 |---------|-----|-------------|
@@ -77,21 +77,21 @@ You should see 10 containers running: fastapi, postgres, minio, mlflow, jupyterl
 
 ---
 
-## ⚙️ Operações Básicas
+### Basic Operations
 
-### Parar Containers (Preservando Dados)
+#### Parar Containers (Preservando Dados)
 
 ```bash
 docker compose stop
 ```
 
-### Reiniciar Containers
+#### Restart Container
 
 ```bash
 docker compose start
 ```
 
-### Logs
+#### Logs
 
 ```bash
 # FastAPI
@@ -104,9 +104,7 @@ docker logs thingsboard -n 20
 docker logs --all
 ```
 
-## 📚 Documentação
-
-### Estrutura do Projeto
+#### File Structure
 
 ```
 ml-cesar/
@@ -117,64 +115,29 @@ ml-cesar/
 ├── notebooks/                  # Jupyter Notebooks
 │   └── heartFailureSurvivalPrediction.ipynb
 ├── docker-compose.yml         # Orquestração
-├── README.md                  # Este arquivo
 ├── backup_databases.ps1       # Backup
 ├── restore_database.ps1       # Restore
 └── configure_thingsboard.py   # Setup ThingsBoard
 ```
 
-### Modelo de ML
+#### ML Model used on ThingsBorad
 
-- **Tipo**: Ensemble Voting Classifier
-- **Modelos**: KNeighborsClassifier + DecisionTreeClassifier + RandomForestClassifier
-- **Features**: 12 parâmetros clínicos
+- **Sampelr**: SMOTE
+- **Model**: RandomForestClassifier
+- **Features**: 12 params
 - **Target**: DEATH_EVENT (0 ou 1)
 
-### Fluxo de Dados
+#### Dataflow
 
 ```
 [Dados do Paciente]
         ↓
    [FastAPI]
         ↓
-   [Predição]
+   [Prediction]
         ↓
   [MinIO + PostgreSQL]
         ↓
-[ThingsBoard + Trendz]
+[ThingsBoard]
 ```
-
----
-
-## 🐛 Problemas Comuns
-
-| Problema | Solução |
-|----------|---------|
-| API não responde | `docker logs fastapi` e `docker compose restart fastapi` |
-| ThingsBoard não abre | Esperar 1-2 minutos, acessar http://localhost:8080 |
-| Dados perdidos | Usar `docker compose stop` em vez de `down` |
-| Espaço em disco | `docker system prune -a --volumes` |
-
----
-
-## 📊 Containers Disponíveis
-
-```bash
-docker ps
-```
-
-Deve mostrar:
-- ✅ fastapi (porta 8000)
-- ✅ postgres (porta 5432)
-- ✅ minio (porta 9000, 9001)
-- ✅ mlflow (porta 5000)
-- ✅ jupyterlab (porta 8890)
-- ✅ thingsboard (porta 8080)
-- ✅ trendz (porta 8888)
-- ✅ trendz-postgres
-- ✅ mlflow-serving
-
----
-
-**Pronto para usar! 🚀**
 
