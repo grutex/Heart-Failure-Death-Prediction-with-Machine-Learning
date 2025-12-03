@@ -74,17 +74,19 @@ You should see 10 containers running: fastapi, postgres, minio, mlflow, jupyterl
 | **MinIO Console** | http://localhost:9001 | admin / admin123 |
 | **Jupyter Lab** | http://localhost:8890 | Token: admin123 |
 | **MLflow** | http://localhost:5000 | - |
-| **ThingsBoard** | http://localhost:8080 | sysadmin@thingsboard.org / sysadmin - tenant@thingsboard.org | tenant |
+| **ThingsBoard** | http://localhost:8080 | sysadmin@thingsboard.org / sysadmin - tenant@thingsboard.org / tenant |
 
 ---
+### How to use FastApi
+  To start using the system, you need to access FastAPI at /enviarDados and upload the dataset for training.  
+
 ### How to use ThingsBoard
   After executing the container, the ThingsBoard Dashboard will be your home.  
   Inside the Dashboard you can send data strings as JSON values to the model by filling the boxes with the corresponding data types  
   The JSON files will be sent to the predictor, which will predict the target column "DEATH_EVENT"  
   After predicted, this data will be appended to the Postgres Database, and thus being used for future predictions.  
-  Metrics will be updated on the graphics plottage inside the Dashboard , as Well as the graphs visualization.  
-
-
+  Metrics will be updated on the graphics plottage inside the Dashboard , as Well as the graphs visualization. 
+    
 ### Basic Docker Operations
 
 #### Parar Containers (Preservando Dados)
@@ -130,6 +132,6 @@ docker logs --all
         ↓
   [MinIO + PostgreSQL]
         ↓
-[ThingsBoard]
+    [ThingsBoard]
 ```
 
